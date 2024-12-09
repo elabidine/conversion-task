@@ -1,0 +1,41 @@
+[project]
+name = "mvp-flexup"
+version = "0.1.0"
+description = "FlexUp App"
+authors = [
+    { name = "Fabrizio Nastri"}
+]
+dependencies = [
+    "coverage>=7.6.7",
+    "django-polymorphic>=3.1",
+    "django-simple-history>=3.7.0",
+    "django>=5.1.3",
+    "enum-properties>=2.0.1",
+    "freezegun>=1.5.1",
+    "ipykernel>=6.29.5",
+    "notebook>=7.2.2",
+    "pillow>=11.0.0",
+    "setuptools>=75.3.0",
+    "polib>=1.2.0",
+]
+readme = "README.md"
+requires-python = ">= 3.11"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "bpython>=0.24; platform_system!='Windows'",
+    "ipython>=8.29.0; platform_system=='Windows'",
+    "redgreenunittest",
+    "django-stubs>=5.1.1",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
