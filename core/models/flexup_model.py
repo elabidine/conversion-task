@@ -129,17 +129,17 @@ class FlexUpModel(PolymorphicModel):
 #             self.updated_by_member = get_current_member()
 #             self.updated_datetime = now
     
-#     def clean(self):
-#         return super().clean()
+    def clean(self):
+         return super().clean()
 
-#     def save(self, *args, **kwargs):
-#         self.assign_values()
-#         self.full_clean()
+    def save(self, *args, **kwargs):
+#        self.assign_values()
+         self.full_clean()
         
-#         if 'member' in kwargs:
-#             kwargs.pop('member')
+         #if 'member' in kwargs:
+         #    kwargs.pop('member')
 
-#         super().save(*args, **kwargs)
+         super().save(*args, **kwargs)
 
 
 # Context manager for CLI & tests
