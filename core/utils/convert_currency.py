@@ -110,7 +110,7 @@ def fetch_specific_rate_from_api(currency: Currency) -> Decimal:
 
         return Decimal(rate).quantize(Decimal('0.000001'),rounding=ROUND_HALF_UP)
     except (requests.RequestException, KeyError) as e:
-        print(f"Failed to fetch rate for {currency}: {e}")
+        _print_object(f"Failed to fetch rate for {currency}: {e}")
         
     API_URL_FIXER = "http://data.fixer.io/api/latest"  # Replace with your API endpoint
     API_KEY = "5736444ca2ffca70f6c6c17b39fab97a"
