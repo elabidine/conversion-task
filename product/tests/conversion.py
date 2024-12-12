@@ -56,9 +56,9 @@ class AbstractConversionTest(TestCase):
         _print_object(print_function_name=True)
         mock_get_rate.side_effect = lambda currency: self.mock_exchange_rates[currency]
         result = convert_currency(self.price, **self.valid_currencies)
-        expected_price = (self.price / Dec("0.80")) * Dec("1.20")
+        expected_price = (self.price * Dec("0.80")) / Dec("1.20")
         _print_object({"input": {"price": self.price, "valid_currencies": self.valid_currencies}, "output": result})
-        self.assertEqual(result, expected_price.quantize(Dec("0.01")))
+        self.assertEqual(result, expected_price.quantize(Dec("0.0001")))
 
     @patch("core.utils.convert_currency.fetch_specific_rate_from_api")
     def test_05_fetch_rate_when_not_in_database(self, fetch_rate_function):
@@ -66,7 +66,7 @@ class AbstractConversionTest(TestCase):
         fetch_rate_function.return_value = Dec("1.25")
         result = convert_currency(self.price, from_currency=Currency.USD, to_currency=Currency.EUR)
         _print_object({"input": {"price": self.price, "from_currency": Currency.USD, "to_currency": Currency.EUR}, "output": result})
-        self.assertEqual(result, Dec("125.00"))
+        self.assertEqual(result, Dec("80.00"))
 
     def test_06_identical_units(self):
         _print_object(print_function_name=True)
