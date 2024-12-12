@@ -109,7 +109,7 @@ class AbstractProduct(FlexUpModel):
         if self.tax_rate is not None:
             self.tax_rate = Dec(self.tax_rate).quantize(Dec('0.01'), rounding=ROUND_HALF_UP)
         if self.price_excluding_tax is not None:
-            self.price_excluding_tax = Dec(self.price_excluding_tax).quantize(Dec('0.01'), rounding=ROUND_HALF_UP)
+            self.price_excluding_tax = Dec(self.price_excluding_tax).quantize(Dec('0.0001'), rounding=ROUND_HALF_UP)
         if self.system_unit and self.custom_unit:
             raise ValidationError(_('You cannot provide both a system unit and a custom unit'))
         # tax rate must be between 0 and 200
@@ -197,31 +197,31 @@ class Product(AbstractProduct):
         
         
     def convert_price(self, to_currency:Currency, to_unit:SystemUnit):
-        """
-        Convert the product's price to a different currency and unit.
+        """ - Convert the product's price to a different currency and unit.
         
-        Args:
+        - Args:
             to_currency (Currency): The target currency for conversion.
             to_unit (SystemUnit): The target unit for conversion.
 
-        Returns:
+        - Returns:
             Product: A new product instance with the converted price, unit, and currency.
+        
+        -Raises:
+            ValidationError: If the Price excluding Tax is not existing or 
         """
         if not self.price_excluding_tax:
             raise ValidationError(_("Price excluding tax must be set to convert the price."))
 
         # Convert the price using a helper function
-        from_currency = self.currency
-        from_unit = self.system_unit or self.custom_unit
 
         new_price = convert_price(
             self.price_excluding_tax,
-            from_currency=from_currency,
+            from_currency=self.currency,
             to_currency=to_currency,
-            from_unit=from_unit,
+            from_unit=self.system_unit or self.custom_unit,
             to_unit=to_unit,
         )
-
+        print("Price", new_price)
         # Create a new Product instance with the converted values
         new_product = Product.objects.create(
             name=self.name,
