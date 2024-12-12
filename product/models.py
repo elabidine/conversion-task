@@ -221,7 +221,6 @@ class Product(AbstractProduct):
             from_unit=self.system_unit or self.custom_unit,
             to_unit=to_unit,
         )
-        print("Price", new_price)
         # Create a new Product instance with the converted values
         new_product = Product.objects.create(
             name=self.name,
