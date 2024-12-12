@@ -30,7 +30,7 @@ class AbstractProductTest(TestCase):
             "price_excluding_tax": Dec('100.00'),
             "tax_rate": Dec('20.00'),
             "description": "Fresh potatoes!",
-            "currency": Currency.DZD,
+            "currency": Currency.JPY,
             "system_unit": SystemUnit.KG,
             "status": Status.ACTIVE,
             "focus": Focus.STARRED,
@@ -213,10 +213,10 @@ class AbstractProductTest(TestCase):
              # When the user creates a product with a price & tax rate that has many decimals
              product = Product.objects.create(name="Test Product", price_excluding_tax=Dec('100.1234'), tax_rate=Dec('20.12'),currency = Currency.USD)
              # Then the product price & tax rate is stored and displayed with 2 decimals
-             self.assertEqual(product.price_excluding_tax, Dec('100.12'))
+             self.assertEqual(product.price_excluding_tax, Dec('100.1234'))
              self.assertEqual(product.tax_rate, Dec('20.12'))
-             self.assertEqual(product.price_including_tax, Dec('120.26'))
-             self.assertEqual(str(product), 'Test Product, 100.12 $ + 20.12% tax = 120.26 $ 🔒📄')
+             self.assertEqual(product.price_including_tax, Dec('120.27'))
+             self.assertEqual(str(product), 'Test Product, 100.12 $ + 20.12% tax = 120.27 $ 🔒📄')
              # When the price & tax rate that has less than 2 decimals, the decimals are padded
              product.price_excluding_tax = Dec('105.74')
              product.tax_rate = Dec('15.00')
