@@ -100,7 +100,7 @@ def fetch_specific_rate_from_api(currency: Currency) -> Decimal:
     FUNCTION="CURRENCY_EXCHANGE_RATE"
 
     try:
-        response = requests.get(API_URL_ALPHA, params={"function":FUNCTION,"apikey": API_KEY,"from_currency": currency.value, "to_currency": BASE_CURRENCY})
+        response = requests.get(API_URL_ALPHA, params={"function":FUNCTION,"apikey": API_KEY,"from_currency": BASE_CURRENCY, "to_currency": currency.value})
         response.raise_for_status()  # Raise an error for HTTP errors
         
         data = response.json()
