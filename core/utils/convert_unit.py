@@ -34,7 +34,7 @@ def convert_unit(price: Decimal, from_unit, to_unit=None) -> Decimal:
         
         # Convert price to target unit
         converted_price = (price * Decimal(to_unit.units_to_base)) / Decimal(from_unit.units_to_base)
-        return converted_price.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
+        return Decimal(converted_price.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP))
 
 
     # Handle custom units (we assume conversion is not possible)

@@ -30,7 +30,7 @@ class AbstractProductTest(TestCase):
             "price_excluding_tax": Dec('100.00'),
             "tax_rate": Dec('20.00'),
             "description": "Fresh potatoes!",
-            "currency": Currency.JPY,
+            "currency": Currency.DZD,
             "system_unit": SystemUnit.KG,
             "status": Status.ACTIVE,
             "focus": Focus.STARRED,
@@ -279,11 +279,15 @@ class AbstractProductTest(TestCase):
             with self.assertRaises(ValidationError):
                 with transaction.atomic():
                     Product.objects.create(name="Test Product", price_excluding_tax=100.00, visibility="invalid")
+                    
     def test_13_convert_to_different_currency_and_unit(self):
+        
         _print_object(print_function_name=True)
+        
         potatoes = Product.objects.create(**self.all_details)
         converted_product = potatoes.convert_price(to_currency=Currency.USD, to_unit=SystemUnit.GRAM)
         self.assertEqual(converted_product.currency, Currency.USD)
         self.assertEqual(converted_product.system_unit, SystemUnit.GRAM)
-        _print_object({"input": {**self.all_details}, "output":{converted_product.system_unit,converted_product.currency,converted_product.name,converted_product.price}})
+        
+        _print_object({"input": {**self.all_details}, "output":{converted_product.system_unit,converted_product.currency,converted_product.name,converted_product.price_excluding_tax}})
 

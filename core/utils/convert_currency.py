@@ -1,5 +1,4 @@
 # ------- core/utils/convert_currency.py
-import os
 import requests
 from decimal import Decimal
 from django.utils import timezone
@@ -42,8 +41,10 @@ def convert_currency(price:Decimal, from_currency: Currency, to_currency: Curren
             from_rate = get_exchange_rate(from_currency)
             to_rate = get_exchange_rate(to_currency)    
             # Convert the value
-            converted_value = (price * from_rate) / to_rate
-            return Decimal(converted_value).quantize(Decimal('0.01'),rounding=ROUND_HALF_UP)
+
+            converted_value = Decimal((price / from_rate) * to_rate).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
+            
+            return converted_value
 
 def get_exchange_rate(currency: Currency) -> Decimal:
     """ - Retrieve the exchange rate for a given currency. Fetch from the API if not in the database
@@ -60,12 +61,11 @@ def get_exchange_rate(currency: Currency) -> Decimal:
         return Decimal(1)  # EUR is the base currency
 
     # Try to find the rate in the database
-    now = timezone.now()
     try:
-        rate_entry = ExchangeRate.objects.get(currency=currency)
-        if rate_entry.datetime > now - timedelta(hours=24):
+        rate_data = ExchangeRate.objects.get(currency=currency)
+        if rate_data.datetime > timezone.now() - timedelta(hours=24):
             # Rate is fresh, return it
-            return rate_entry.rate
+            return rate_data.rate
     except ExchangeRate.DoesNotExist:
         pass  
 
@@ -77,13 +77,13 @@ def get_exchange_rate(currency: Currency) -> Decimal:
         currency=currency,
         defaults={
         'rate': Decimal(rate),  # These are the fields to update or create
-        'datetime': now,        # Updated or set if the object is created
     }
     )
-    return Decimal(rate)
+    return Decimal(rate).quantize(Decimal('0.000001'),rounding=ROUND_HALF_UP)
 
 def fetch_specific_rate_from_api(currency: Currency) -> Decimal:
     """ - Fetch the exchange rate for a specific currency from an external API.
+              Use two api calls to fetch the rate and minmize request    
 
     - Args:
         currency (str): The currency for which the rate is required.
@@ -94,31 +94,31 @@ def fetch_specific_rate_from_api(currency: Currency) -> Decimal:
     - Raises:
         RuntimeError: If the API request fails or the currency is invalid.
     """
-    API_URL = "https://www.alphavantage.co/query" 
+    API_URL_ALPHA = "https://www.alphavantage.co/query" 
     BASE_CURRENCY = "EUR"
-    API_KEY = "LSIJXJTIJ90Q9G87"
+    API_KEY = "0O8QML1RVJW8JVXV"
     FUNCTION="CURRENCY_EXCHANGE_RATE"
 
     try:
-        response = requests.get(API_URL, params={"function":FUNCTION,"apikey": API_KEY,"from_currency": currency.value, "to_currency": BASE_CURRENCY})
+        response = requests.get(API_URL_ALPHA, params={"function":FUNCTION,"apikey": API_KEY,"from_currency": currency.value, "to_currency": BASE_CURRENCY})
         response.raise_for_status()  # Raise an error for HTTP errors
         
         data = response.json()
         
         rate = data["Realtime Currency Exchange Rate"]["5. Exchange Rate"]
+          # Convert API date to timezone-aware datetime
+
         return Decimal(rate).quantize(Decimal('0.000001'),rounding=ROUND_HALF_UP)
     except (requests.RequestException, KeyError) as e:
-        _print_object(f"Erreur Alpha Vantage: {e}. Passage à Fixer...")
+        print(f"Failed to fetch rate for {currency}: {e}")
         
-    API_URL = "http://data.fixer.io/api/latest"  # Replace with your API endpoint
-    BASE_CURRENCY = "EUR"
+    API_URL_FIXER = "http://data.fixer.io/api/latest"  # Replace with your API endpoint
     API_KEY = "5736444ca2ffca70f6c6c17b39fab97a"
-
     try:
-        response = requests.get(API_URL, params={"access_key": API_KEY,"base": BASE_CURRENCY, "symbols": currency.value})
+        response = requests.get(API_URL_FIXER, params={"access_key": API_KEY,"base": BASE_CURRENCY, "symbols": currency.value})
         response.raise_for_status()  # Raise an error for HTTP errors
         data = response.json()
         rate = data["rates"][currency]
-        return Decimal(rate).quantize(Decimal('0.0001'),rounding=ROUND_HALF_UP)
+        return Decimal(rate).quantize(Decimal('0.000001'),rounding=ROUND_HALF_UP)
     except (requests.RequestException, KeyError) as e:
         raise RuntimeError(f"Failed to fetch rate for {currency}: {e}")
