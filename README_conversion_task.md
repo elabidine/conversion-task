@@ -1,6 +1,14 @@
 
 # Project Documentation
 
+# Pulling the Latest Changes
+
+Before making any changes or running the application, ensure that your local branch is up-to-date with the latest changes from the main branch. Use the following command:
+```bash
+git pull origin main
+```
+
+
 ## Bug Fixes
 
 ### **Fix BUG: LIT/MIL Conversion**  
@@ -32,7 +40,7 @@ This method converts a product's price to a different currency and unit.
 ### Product Tests
 The tests include debugging and adjustments based on the previous versions. The old tests that existed in this file were debugged and adjusted to work with the latest implementation. Additionally, I have added new tests specifically for the `convert_price` method of the `Product` model, which I have implemented.
 
-To run the tests (you will see only the new tests for the `convert_price` method, including the input and expected output.):
+To run the tests (in the bash you will see only the new tests name function for the `convert_price` method, including the input and expected output.):
 ```bash
 python manage.py test product.tests.product
 ```
