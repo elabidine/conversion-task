@@ -2,6 +2,7 @@
 import requests
 from decimal import Decimal
 from django.utils import timezone
+from django.utils.timezone import make_aware,is_naive,datetime
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -14,11 +15,11 @@ from utils.print_object import _print_object
 
         
 # Not yet implemented
-def convert_currency(price:Decimal, from_currency: Currency, to_currency: Currency = None,date=None) -> Decimal:
+def convert_currency(value:Decimal, from_currency: Currency, to_currency: Currency = None, date:datetime=None) -> Decimal:
     
-    """ - Convert a price (price or amount) from one currency to another. 
+    """ - Convert a value (price or amount) from one currency to another. 
     - Args:
-        - price: The price to convert.
+        - value: The value to convert.
         - from_currency: The currency to convert from.
         - to_currency: The currency to convert to.
         - date: The date to use for the conversion rate. If None, the current date is used.
@@ -33,28 +34,29 @@ def convert_currency(price:Decimal, from_currency: Currency, to_currency: Curren
         raise ValidationError(_('The source currency must be provided.'))
     
     if not to_currency or from_currency == to_currency:
-        return price
+        return Decimal(value)
     
     if not isinstance(from_currency, Currency) or not isinstance(to_currency, Currency):
         raise ValidationError(_('One or both provided currencies are invalid.'))
     
     else:
             # Get exchange rates for the source and target currencies
-            from_rate = get_exchange_rate(from_currency)
-            to_rate = get_exchange_rate(to_currency)    
+            from_rate = get_exchange_rate(from_currency,date)
+            to_rate = get_exchange_rate(to_currency,date)    
             # Convert the value
 
-            converted_value = Decimal((price / from_rate) * to_rate).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
+            converted_value = Decimal((Decimal(value) * from_rate) / to_rate).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
             
             return converted_value
 
-def get_exchange_rate(currency: Currency) -> Decimal:
+def get_exchange_rate(currency: Currency, date : datetime = None) -> Decimal:
     
     """ - Retrieve the exchange rate for a given currency. Fetch from the API if not in the database
     or if the stored rate is outdated.
 
     - Args:
         currency (Currency): The currency for which the rate is required.
+        date: The date to use for the conversion rate. If None, the current date is used.
 
     - Returns:
         Decimal: The exchange rate.
@@ -62,35 +64,35 @@ def get_exchange_rate(currency: Currency) -> Decimal:
     """
     if currency.value == "EUR":
         return Decimal(1)  # EUR is the base currency
+    
+    if not date:
+        date = timezone.now()
+    
+    # Convert the date to UTC timezone if it is not None
+    if date and is_naive(date):
+        date = make_aware(date)
 
     # Try to find the rate in the database
     try:
         rate_data = ExchangeRate.objects.get(currency=currency)
-        if rate_data.datetime > timezone.now() - timedelta(hours=24):
+        if rate_data.datetime > date - timedelta(hours=24):
             # Rate is fresh, return it
             return rate_data.rate
     except ExchangeRate.DoesNotExist:
         pass  
 
     # Fetch the rate from the external API
-    rate = fetch_specific_rate_from_api(currency)
-
+    rate = fetch_specific_rate_from_api(currency,date)
     # Store the rate in the database
-    ExchangeRate.objects.update_or_create(
-        currency=currency,
-        defaults={
-        'rate': Decimal(rate),
-        'datetime':timezone.now  # These are the fields to update or create
-    }
-    )
+    ExchangeRate.objects.update_or_create(currency=currency,defaults={'rate': Decimal(rate),'datetime':date})  # These are the fields to update or create
     return Decimal(rate).quantize(Decimal('0.000001'),rounding=ROUND_HALF_UP)
 
-def fetch_specific_rate_from_api(currency: Currency) -> Decimal:
-    """ - Fetch the exchange rate for a specific currency from an external API.
-              Use two api calls to fetch the rate and minmize request    
+def fetch_specific_rate_from_api(currency: Currency,date : datetime = None) -> Decimal:
+    """ - Fetch the exchange rate for a specific currency from an external API
+                with base EUR.
 
     - Args:
-        currency (str): The currency for which the rate is required.
+        currency (Currency): The currency for which the rate is required.
 
     - Returns:
         Decimal: The exchange rate.
@@ -98,8 +100,10 @@ def fetch_specific_rate_from_api(currency: Currency) -> Decimal:
     - Raises:
         RuntimeError: If the API request fails or the currency is invalid.
     """
-    API_URL_ALPHA = "https://www.alphavantage.co/query" 
     BASE_CURRENCY = "EUR"
+    
+    #Fetching currency exchange rates using the Alpha Vantage API
+    API_URL_ALPHA = "https://www.alphavantage.co/query" 
     API_KEY_ALPHA = "0O8QML1RVJW8JVXV"
     FUNCTION="CURRENCY_EXCHANGE_RATE"
 
@@ -116,6 +120,7 @@ def fetch_specific_rate_from_api(currency: Currency) -> Decimal:
     except (requests.RequestException, KeyError) as e:
         _print_object(f"Failed to fetch rate for {currency}: {e} with ALPHA API")
  
+    #Fetch currency exchange rates using the Twelve Data API as a fallback if the Alpha Vantage API fails or is unavailable
     API_URL_TWELVE = f"https://api.twelvedata.com/exchange_rate"
     API_KEY_TWELVE="b2246d7458cd463b819b23449c357377"
     

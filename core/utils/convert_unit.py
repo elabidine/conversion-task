@@ -33,7 +33,7 @@ def convert_unit(price: Decimal, from_unit, to_unit=None) -> Decimal:
             raise ValidationError(_(f"Cannot convert between units of different dimensions: {from_unit} and {to_unit}."))
         
         # Convert price to target unit
-        converted_price = (price * Decimal(to_unit.units_to_base)) / Decimal(from_unit.units_to_base)
+        converted_price = (Decimal(price) * Decimal(to_unit.units_to_base)) / Decimal(from_unit.units_to_base)
         return Decimal(converted_price.quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP))
 
 

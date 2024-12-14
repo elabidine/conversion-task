@@ -54,6 +54,7 @@ class AbstractProductTest(TestCase):
         # Given an editor member of the account, and a full set of product details (see setUpTestData)
         # When the editor creates a product
         #with override_current_member(self.supplier_member):
+            _print_object(print_function_name=True)
             potatoes = Product.objects.create(**self.all_details)
 
             # Then the product is created with the details provided
@@ -85,6 +86,7 @@ class AbstractProductTest(TestCase):
         # Given an editor member of the account, and some product details with only minimum required fields (see setUpTestData)
         # When the editor creates a product
 
+        _print_object(print_function_name=True)
         computer = Product.objects.create(**self.minimum_details)
 
 
@@ -114,6 +116,7 @@ class AbstractProductTest(TestCase):
     def test_04_create_product_with_custom_unit(self):
         # Given an editor member of the account, and some product details with a custom unit (see setUpTestData)
         # When the editor creates a product
+        _print_object(print_function_name=True)
         cake = Product.objects.create(**self.custom_unit_details)
 
         # Then the product is created with the given details
@@ -133,6 +136,7 @@ class AbstractProductTest(TestCase):
     def test_04_create_product_with_both_units(self):
         # Given an editor member of the account, and some product details with both units (see setUpTestData)
         # When the editor tries to create a product
+        _print_object(print_function_name=True)
         with self.assertRaises(ValidationError):
             Product.objects.create(name="Test Product", system_unit=SystemUnit.LIT, custom_unit="Custom Unit")
 #
@@ -148,6 +152,7 @@ class AbstractProductTest(TestCase):
     def test_07_recovering_a_public_product_from_database(self):
         # Given a user who has stored a product in the database
         #with override_current_member(self.supplier_member):
+            _print_object(print_function_name=True)
             product = Product.objects.create(**self.all_details)
             # print("---- %s" % p.created_by_member)
             # print("---- %s" % p.account)
@@ -193,6 +198,7 @@ class AbstractProductTest(TestCase):
     def test_08_updating_product(self):
         # Given a user who has stored a product in the database
         #with override_current_member(self.supplier_member):
+            _print_object(print_function_name=True)
             Product.objects.create(**self.all_details)
 
             # When the user updates the product
@@ -207,7 +213,7 @@ class AbstractProductTest(TestCase):
 # removed for the assignment
 
     def test_10_prices_with_many_decimals(self):
-
+             _print_object(print_function_name=True)
          # Given a member editor of an active account
          #with override_current_member(self.supplier_member):
              # When the user creates a product with a price & tax rate that has many decimals
@@ -249,6 +255,7 @@ class AbstractProductTest(TestCase):
     #             product.save()
 
     def test_12_product_with_invalid_values(self):
+            _print_object(print_function_name=True)
         # Given an editor member of the account
         #with override_current_member(self.supplier_member):
             # When the user tries to create a product with an invalid tax rate, he gets an error
@@ -281,7 +288,8 @@ class AbstractProductTest(TestCase):
                     Product.objects.create(name="Test Product", price_excluding_tax=100.00, visibility="invalid")
                     
     def test_13_convert_to_different_currency_and_unit(self):
-        
+        # Duplicate product with convert price method with target currency 
+        # and the target unit and the new price
         _print_object(print_function_name=True)
         
         potatoes = Product.objects.create(**self.all_details)
@@ -289,5 +297,28 @@ class AbstractProductTest(TestCase):
         self.assertEqual(converted_product.currency, Currency.USD)
         self.assertEqual(converted_product.system_unit, SystemUnit.GRAM)
         
-        _print_object({"input": {**self.all_details}, "output":{converted_product.system_unit,converted_product.currency,converted_product.name,converted_product.price_excluding_tax}})
+        _print_object({"input": {**self.all_details}, "output":{converted_product.system_unit.value,converted_product.currency.value,converted_product.name,converted_product.price_excluding_tax}})
+        
+    def test_14_convert_price_to_different_unit(self):
+        #Using convert price method to convert price to different unit
+        _print_object(print_function_name=True)
+        
+        potatoes = Product.objects.create(**self.all_details)
+        converted_product = potatoes.convert_price(to_unit=SystemUnit.GRAM)
+        self.assertEqual(converted_product.system_unit, SystemUnit.GRAM)
+        self.assertEqual(converted_product.currency, potatoes.currency)
+        self.assertEqual(converted_product.price_excluding_tax,Dec("0.1000"))
+        
+        _print_object({"input": {**self.all_details}, "output":{converted_product.system_unit.value,converted_product.currency.value,converted_product.name,converted_product.price_excluding_tax}})
 
+    def test_15_convert_price_to_different_currency(self):
+        #Using convert price method to convert price to different currency
+
+        _print_object(print_function_name=True)
+        
+        potatoes = Product.objects.create(**self.all_details)
+        converted_product = potatoes.convert_price(to_currency=Currency.USD)
+        self.assertEqual(converted_product.currency, Currency.USD)
+        self.assertEqual(converted_product.system_unit,potatoes.system_unit)
+        
+        _print_object({"input": {**self.all_details}, "output":{converted_product.system_unit.value,converted_product.currency.value,converted_product.name,converted_product.price_excluding_tax}})
