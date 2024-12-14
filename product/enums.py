@@ -93,7 +93,7 @@ class SystemUnit(FlexUpEnum):
     MG           =  'MG',   _('Milligram'),             _('mg'),              Dimension.WEIGHT,    'KG',       0.000001,       True,           18,
     MILE         =  'MIL',  _('Mile'),                  _('mile'),            Dimension.LENGTH,    'M',        1609.34,        True,           51,
     MIN          =  'MIN',  _('Minute'),                _('min'),             Dimension.DURATION,  'HR',       0.016666667,    True,           10,
-    ML           =  'ML',   _('Milliliter'),            _('ml'),              Dimension.VOLUME,    'LIT',      1,              True,           31,
+    ML           =  'ML',   _('Milliliter'),            _('ml'),              Dimension.VOLUME,    'LIT',      0.001,          True,           31,
     MM           =  'MM',   _('Millimeter'),            _('mm'),              Dimension.LENGTH,    'M',        0.001,          True,           52,
     MONTH        =  'MON',  _('Month'),                 _('month'),           Dimension.DURATION,  'HR',       730.5,          True,           11,
     AGE_MO       =  'AMO',  _('Age in months'),         _('month-age'),       None,                'AYR',      12,             False,          59,

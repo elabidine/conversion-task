@@ -196,7 +196,7 @@ class Product(AbstractProduct):
         super().assign_values()
         
         
-    def convert_price(self, to_currency:Currency, to_unit:SystemUnit):
+    def convert_price(self, to_currency:Currency=None, to_unit:SystemUnit=None):
         """ - Convert the product's price to a different currency and unit.
         
         - Args:
@@ -207,12 +207,15 @@ class Product(AbstractProduct):
             Product: A new product instance with the converted price, unit, and currency.
         
         -Raises:
-            ValidationError: If the Price excluding Tax is not existing or 
+            ValidationError: If the Price excluding Tax is not existing 
+            ValidationError: If the target currency and target unit are none
         """
         if not self.price_excluding_tax:
             raise ValidationError(_("Price excluding tax must be set to convert the price."))
 
         # Convert the price using a helper function
+        if not to_currency and not to_unit:
+            raise ValidationError(_("You must specify either a target currency or a target unit for price conversion."))
 
         new_price = convert_price(
             self.price_excluding_tax,
@@ -221,6 +224,11 @@ class Product(AbstractProduct):
             from_unit=self.system_unit or self.custom_unit,
             to_unit=to_unit,
         )
+        if not to_currency:
+            to_currency = self.currency
+        
+        if not to_unit:
+            to_unit = self.system_unit
         # Create a new Product instance with the converted values
         new_product = Product.objects.create(
             name=self.name,

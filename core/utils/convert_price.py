@@ -4,9 +4,10 @@ from django.forms import ValidationError
 
 from core.utils import convert_currency, convert_unit
 from product.enums import SystemUnit
+from core.enums.currency import Currency
 
 
-def convert_price(price: Decimal, from_currency, to_currency=None, from_unit=None, to_unit=None) -> Decimal:
+def convert_price(price: Decimal, from_currency:Currency, to_currency:Currency=None, from_unit:SystemUnit=None, to_unit:SystemUnit=None) -> Decimal:
     """ - Convert a price from one currency and unit to another.
     
     - Args:

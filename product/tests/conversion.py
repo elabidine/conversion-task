@@ -80,12 +80,10 @@ class AbstractConversionTest(TestCase):
         # Without mocking, comparing the result with a fixed value would cause the test to fail.
         _print_object(print_function_name=True)
         
-        mock_get_rate.side_effect = lambda currency: self.mock_exchange_rates[currency]
+        mock_get_rate.side_effect = lambda *args: self.mock_exchange_rates[args[0]]
         result = convert_currency(self.price, **self.valid_currencies)
-        expected_price = Dec('105.2632')
-        
         _print_object({"input": {"price": self.price, "valid_currencies": self.valid_currencies}, "output": result})
-        self.assertEqual(result, expected_price.quantize(Dec("0.0001")))
+        self.assertEqual(result, Dec('95'))
 
     @patch("core.utils.convert_currency.fetch_specific_rate_from_api")
     def test_07_fetch_rate_when_missing_in_database(self, fetch_rate_function):
@@ -93,11 +91,11 @@ class AbstractConversionTest(TestCase):
         # The mock function should return the rate from the API.
         _print_object(print_function_name=True)
         
-        fetch_rate_function.return_value = Dec("1.25")
+        fetch_rate_function.return_value = Dec("0.95")
         result = convert_currency(self.price, from_currency=Currency.USD, to_currency=Currency.EUR)
         
         _print_object({"input": {"price": self.price, "from_currency": Currency.USD, "to_currency": Currency.EUR}, "output": result})
-        self.assertEqual(result, Dec("80.00"))
+        self.assertEqual(result, Dec("95.00"))
 
     def test_08_conversion_of_identical_units(self):
         #Return the input_price if the target and the source are the same
