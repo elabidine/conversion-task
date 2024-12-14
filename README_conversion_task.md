@@ -18,8 +18,6 @@ This function converts each currency to the Euro (EUR) using two third-party API
 ### `convert_currency` - core/utils/convert_currency
 This function retrieves the exchange rates for both the source and target currencies using `get_exchange_rate`. It then performs the conversion by multiplying the source value by the source currency rate and dividing it by the target currency rate.
 
-**Updated:** The `datetime` parameter in this function is now specified as `timezone/datetime`, which matches the field type.
-
 ### `convert_unit` - core/utils/convert_unit
 This function converts a price from one unit to another.
 
